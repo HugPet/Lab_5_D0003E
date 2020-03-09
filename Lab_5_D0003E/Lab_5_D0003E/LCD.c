@@ -15,6 +15,12 @@ void initLCD() {
 	
 	TCCR1B = (0<<WGM13)|(1<<WGM12)|(0<<WGM11)|(0<<WGM10)|(1<<CS12)|(0<<CS11)|(1<<CS10);
 	
+	UCSR0B = (1 << RXEN0)|(1<<TXEN0)|(1 << RXCIE0);
+	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);   // Set frame: 8data, 1 stp
+	UBRR0H = (MYUBRR >> 8);
+	UBRR0L = MYUBRR;
+
+	    
 	PCMSK0 = 0x0c;
 	PCMSK1 = 0xd0;
 	EIFR = 0xc0;
@@ -26,10 +32,15 @@ void initLCD() {
 	
 }
 
-void update(int n1, int n2, int n3) {
+void update(int n1, int n2, int n3, TrafficLight *traff) {
 	printQN(n1);
 	printQS(n2);
 	printOnBridge(n3);
+	UDR0 = n1;
+	UDR0 = n2;
+	UDR0 = n3;
+	UDR0 = traff->n;
+	UDR0 = traff->s;
 }
 
 void printQN(int num) {
@@ -52,7 +63,7 @@ void printAt(int num, int pos) {
 }
 
 void writeChar(char ch, int pos) {
-		DISABLE;
+	DISABLE;
 	int SCC_X_0 = 0, SCC_X_1 = 0, SCC_X_2 = 0, SCC_X_3 = 0;
 		
 	switch (ch)					/* a switch statement for which character is to be printed on the display.
@@ -176,7 +187,7 @@ void writeChar(char ch, int pos) {
 	return;
 }
 
-void writeReg(int num, int reg, bool shift) {
+int writeReg(int num, int reg, bool shift) {
 	if(!shift){
 		reg &= 0xF0;
 		reg |= num;

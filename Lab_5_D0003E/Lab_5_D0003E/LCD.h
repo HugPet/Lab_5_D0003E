@@ -9,15 +9,27 @@
 #ifndef LCD_H_
 #define LCD_H_
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include "TinyTimber.h"
+#include <stdbool.h>
+#include "TrafficLight.h"
 
-struct LCD_Block {
+#define ENABLE cli()
+#define DISABLE sei()
+#define FOSC 8000000                       // Clock Speed
+#define BAUD 9600
+#define MYUBRR FOSC/16/BAUD -1
 
-};
 
-typedef struct LCD_Block *LCD;
+
+//struct LCD_Block {
+
+//};
+
+//typedef struct LCD_Block LCD;
 
 void initLCD();
-void update(int n1, int n2, int n3);
+void update(int n1, int n2, int n3, TrafficLight *traff);
 void printQS(int num);
 void printQN(int num);
 void printOnBridge(int num);

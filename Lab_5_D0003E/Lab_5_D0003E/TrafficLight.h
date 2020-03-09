@@ -19,9 +19,10 @@ struct TrafficLight_block {
 	OnBridge *bridge;
 };
 
-typedef struct TrafficLight_block *TrafficLight;
+typedef struct TrafficLight_block TrafficLight;
 
-void changeSouth(TrafficLight *self, bool val);
-void changeNorth(TrafficLight *self, bool val);
+void turnSouth(TrafficLight *self, bool val);
+void turnNorth(TrafficLight *self, bool val);
+void changeActive(TrafficLight *self);
 
 #endif /* TRAFFICLIGHT_H_ */

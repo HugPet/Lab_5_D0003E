@@ -11,14 +11,16 @@
 #include "TinyTimber.h"
 #define NULL 0
 
-#define initOnBridge() {initObject(), 0}
+#define initOnBridge() {initObject(), 0, 0, 0}
 
 struct OnBridge_Block {
 	Object Super;
 	int carsOnBridge;
+	int nToS;
+	int sToN;
 };
 
-typedef struct OnBridge_Block *OnBridge;
+typedef struct OnBridge_Block OnBridge;
 
 void addCar(OnBridge *self);
 void subCar(OnBridge *self);

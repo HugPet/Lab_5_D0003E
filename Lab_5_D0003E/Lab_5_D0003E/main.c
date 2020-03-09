@@ -12,10 +12,12 @@
 int main(void)
 {
 	OnBridge bridge = initOnBridge();
-	TrafficLight tL = initTrafficLight(b);
-	BeforeBridge norr = initBeforeBridge(tL);
-	BeforeBridge syd = initBeforeBridge(tL);
-    Inter i = initInter(norr, syd);
-	return TINYTIMBER(&i, onStart, NULL)
+	TrafficLight tL = initTrafficLight(&bridge);
+	BeforeBridge norr = initBeforeBridge(&tL);
+	BeforeBridge syd = initBeforeBridge(&tL);
+    Inter i = initInter(&norr, &syd);
+	INSTALL(&i, interSignal, IRQ_USART0_RX);
+	//onStart(&i);
+	return TINYTIMBER(&i, onStart, NULL);
 }
 

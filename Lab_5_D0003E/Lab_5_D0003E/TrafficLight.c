@@ -5,10 +5,19 @@
  *  Author: User
  */ 
 
-void changeNorth(TrafficLight *self, bool val) {
+#include "TrafficLight.h"
+
+void turnNorth(TrafficLight *self, bool val) {
 	self->n = val;
+	self->s = !val;
 }
 
-void changeSouth(TrafficLight *self, bool val) {
+void turnSouth(TrafficLight *self, bool val) {
 	self->s = val;
+	self->n = !val;
+}
+
+void changeActive(TrafficLight *self) {
+	self->s = !self->s;
+	self->n = !self->n;
 }

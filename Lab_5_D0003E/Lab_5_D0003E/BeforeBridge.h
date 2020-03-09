@@ -19,7 +19,7 @@ struct BeforeBridge_Block {
 	TrafficLight *traf;
 };
 
-typedef struct BeforeBridge_Block *BeforeBridge;
+typedef struct BeforeBridge_Block BeforeBridge;
 
 void enQ(BeforeBridge *self);
 void deQ(BeforeBridge *self);
