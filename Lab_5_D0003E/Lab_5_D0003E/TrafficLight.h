@@ -9,6 +9,7 @@
 #ifndef TRAFFICLIGHT_H_
 #define TRAFFICLIGHT_H_
 #include <stdbool.h>
+#include <stdint.h>
 #include "TinyTimber.h"
 #include "OnBridge.h"
 #define initTrafficLight(o) {initObject(), false, false, o}

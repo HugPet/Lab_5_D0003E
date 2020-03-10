@@ -9,12 +9,10 @@
 
 void turnNorth(TrafficLight *self, bool val) {
 	self->n = val;
-	self->s = !val;
 }
 
 void turnSouth(TrafficLight *self, bool val) {
 	self->s = val;
-	self->n = !val;
 }
 
 void changeActive(TrafficLight *self) {

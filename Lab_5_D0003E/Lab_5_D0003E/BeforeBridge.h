@@ -11,7 +11,7 @@
 #include "TinyTimber.h"
 #include "TrafficLight.h"
 
-#define initBeforeBridge(t) {initObject(), 0, t}
+#define initBeforeBridge(t) {initObject(), 5, t}
 
 struct BeforeBridge_Block {
 	Object Super;

@@ -32,15 +32,14 @@ void initLCD() {
 	
 }
 
-void update(int n1, int n2, int n3, TrafficLight *traff) {
+void update(int n1, int n2, int n3) {
 	printQN(n1);
 	printQS(n2);
 	printOnBridge(n3);
-	UDR0 = n1;
-	UDR0 = n2;
-	UDR0 = n3;
-	UDR0 = traff->n;
-	UDR0 = traff->s;
+}
+
+void updateTrafficSignal(TrafficLight *traff) {
+	UDR0 = (traff->n << 4)|(!(traff->n) << 5)|(traff->s << 6)|(!(traff->s) << 7);
 }
 
 void printQN(int num) {

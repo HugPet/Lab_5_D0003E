@@ -29,6 +29,10 @@ void addToSouthQueue(Inter *self);
 void sendToBridge(Inter *self);
 void removeFromBridge(Inter *self);
 void changeLight(Inter *self);
+void sendDirectlyNorth(Inter *self);
+void sendDirectlySouth(Inter *self);
 void interSignal(Inter *self, int arg);
+void checkTimer(Inter *self);
+void updateAll(Inter *self, int trafficChange);
 
 #endif /* INTER_H_ */

@@ -29,11 +29,13 @@
 //typedef struct LCD_Block LCD;
 
 void initLCD();
-void update(int n1, int n2, int n3, TrafficLight *traff);
+void update(int n1, int n2, int n3);
 void printQS(int num);
 void printQN(int num);
 void printOnBridge(int num);
 void writeChar(char ch, int pos);
 int writeReg(int num, int reg, bool shift);
 void printAt(int num, int pos);
+void updateTrafficSignal(TrafficLight *traff);
+
 #endif /* LCD_H_ */
