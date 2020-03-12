@@ -11,15 +11,20 @@
 
 int main(void)
 {
-	initLCD();
+	initScreen();
+	LCD l = initLCD();
 	OnBridge bridge = initOnBridge();
 	TrafficLight tL = initTrafficLight(&bridge);
-	BeforeBridge norr = initBeforeBridge(&tL);
-	BeforeBridge syd = initBeforeBridge(&tL);
-    Inter i = initInter(&norr, &syd);
+	BeforeBridge norr = initBeforeBridge(99, &tL);
+	BeforeBridge syd = initBeforeBridge(55, &tL);
+    Inter i = initInter(&norr, &syd, &l);
+	onStart(&i);
 	INSTALL(&i, interSignal, IRQ_USART0_RX);
-	INSTALL(&i, interSignal, IRQ_USART0_TX);
-	INSTALL(&i, interSignal, IRQ_USART0_UDRE);
-	return TINYTIMBER(&i, onStart, NULL);
+	//INSTALL(&i, interSignal, IRQ_USART0_TX);
+	//INSTALL(&i, interSignal, IRQ_USART0_UDRE);
+	//return TINYTIMBER(&i, sendToBridge, NULL);
+	return TINYTIMBER(&i, sendToBridge, NULL);
+
+
 }
 

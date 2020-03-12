@@ -7,7 +7,7 @@
 
 #include "LCD.h"
 
-void initLCD() {
+void initScreen() {
 	LCDCRB = (1<<LCDMUX1)|(1<<LCDMUX0)|(1<<LCDPM2)|(1<<LCDPM1)|(1<<LCDPM2);
 	LCDFRR = (0<<LCDPS2)|(0<<LCDPS1)|(0<<LCDPS0)|(1<<LCDCD2)|(1<<LCDCD1)|(1<<LCDCD0);
 	LCDCCR = (0<<LCDDC2)|(0<<LCDDC1)|(0<<LCDDC0)|(1<<LCDCC3)|(1<<LCDCC2)|(1<<LCDCC1)|(1<<LCDCC0);
@@ -16,11 +16,13 @@ void initLCD() {
 	TCCR1B = (0<<WGM13)|(1<<WGM12)|(0<<WGM11)|(0<<WGM10)|(1<<CS12)|(0<<CS11)|(1<<CS10);
 	
 	UCSR0B = (1 << RXEN0)|(1<<TXEN0)|(1 << RXCIE0);
-	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);   // Set frame: 8data, 1 stp
+	UCSR0C = (1 << USBS0)|(1 << UCSZ01) | (1 << UCSZ00);   // Set frame: 8data, 1 stp
 	UBRR0H = (MYUBRR >> 8);
 	UBRR0L = MYUBRR;
+	
+	PRR = (0<<2);
 
-	    
+	   
 	PCMSK0 = 0x0c;
 	PCMSK1 = 0xd0;
 	EIFR = 0xc0;

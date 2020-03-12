@@ -22,13 +22,15 @@
 
 
 
-//struct LCD_Block {
+struct LCD_Block {
+	Object Super;
+};
 
-//};
+typedef struct LCD_Block LCD;
 
-//typedef struct LCD_Block LCD;
+#define initLCD() {initObject()}
 
-void initLCD();
+void initScreen();
 void update(int n1, int n2, int n3);
 void printQS(int num);
 void printQN(int num);

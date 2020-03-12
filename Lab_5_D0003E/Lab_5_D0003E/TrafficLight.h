@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include "TinyTimber.h"
 #include "OnBridge.h"
-#define initTrafficLight(o) {initObject(), false, false, o}
+#define initTrafficLight(o) {initObject(), true, false, o}
 
 struct TrafficLight_block {
 	Object Super;

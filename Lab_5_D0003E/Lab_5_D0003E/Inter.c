@@ -12,7 +12,10 @@ void updateAll(Inter *self, int trafficChange) {
 	if (trafficChange == 1) {
 		updateTrafficSignal(self->north->traf);
 	}
-	update(self->north->carsInQ, self->south->carsInQ, self->north->traf->bridge->carsOnBridge);
+	SYNC(self->l, printQN, self->north->carsInQ);
+	SYNC(self->l, printQS, self->south->carsInQ);
+	SYNC(self->l, printOnBridge, self->north->traf->bridge->carsOnBridge);
+	//update(self->north->carsInQ, self->south->carsInQ, self->north->traf->bridge->carsOnBridge);
 }
 
 void interSignal(Inter *self, int arg) {
@@ -29,7 +32,7 @@ void interSignal(Inter *self, int arg) {
 			addToSouthQueue(self);
 		} else if (UDR0 & 3) {
 			sendDirectlySouth(self);
-		} else {
+		} else if (UDR0 == 0x65) {
 			onExit(self);
 		}
 		updateAll(self, 0);
@@ -52,19 +55,19 @@ void sendDirectlySouth(Inter *self) {
 }
 
 void addToNorthQueue(Inter *self) {
-	SYNC(&self->north, enQ, NULL);
+	self->north->carsInQ++;
 	updateAll(self, 0);
 }
 
 void addToSouthQueue(Inter *self) {
-	SYNC(&self->south, enQ, NULL);
+	self->south->carsInQ++;
 	updateAll(self, 0);
 }
 
 void onStart(Inter *self) {
+	//self->running = true;
 	//initLCD();
-	sendToBridge(self);
-	self->running = true;
+	//sendToBridge(self);
 	addToNorthQueue(self);
 	updateAll(self, 0);
 }
@@ -78,38 +81,41 @@ void onExit(Inter *self) {
 }
 
 void sendToBridge(Inter *self) {
-	if (self->north->traf->n) {
-		ASYNC(&self->north, deQ, NULL);
-		AFTER(SEC(5), self, removeFromBridge, NULL);
-	} else if (self->south->traf->s){
-		ASYNC(&self->south, deQ, NULL);
-		AFTER(SEC(5), self, removeFromBridge, NULL);
-	}
+	if (self->running) {
+		//if (self->north->traf->n) {
+			//SYNC(self->north, deQ, NULL);
+			//AFTER(SEC(5), self, removeFromBridge, NULL);
+		//} else if (self->south->traf->s){
+			//SYNC(self->south, deQ, NULL);
+			//AFTER(SEC(5), self, removeFromBridge, NULL);
+		//}
 
-	if (self->north->carsInQ > 0 && (self->south->carsInQ == 0 || !self->north->traf->s) && self->north->traf->bridge->sToN == 0) {
-		SYNC(&self->north->traf, turnNorth, true);
-		SYNC(&self->north->traf, turnSouth, false);
-		updateAll(self, 1);
-		self->timer = 0;
-	} else if (self->south->carsInQ > 0 && (self->north->carsInQ == 0 || !self->north->traf->n) && self->north->traf->bridge->nToS == 0) {
-		SYNC(&self->north->traf, turnSouth, true);
-		SYNC(&self->north->traf, turnNorth, false);
-		updateAll(self, 1);
-		self->timer = 0;
+		//if (self->north->carsInQ > 0 && (self->south->carsInQ == 0 || !self->north->traf->s) && self->north->traf->bridge->sToN == 0) {
+			//SYNC(self->north->traf, turnNorth, true);
+			//SYNC(self->north->traf, turnSouth, false);
+			//updateAll(self, 1);
+			//self->timer = 0;
+		//} else if (self->south->carsInQ > 0 && (self->north->carsInQ == 0 || !self->north->traf->n) && self->north->traf->bridge->nToS == 0) {
+			//SYNC(self->north->traf, turnSouth, true);
+			//SYNC(self->north->traf, turnNorth, false);
+			//updateAll(self, 1);
+			//self->timer = 0;
+		//}
+		//updateAll(self, 0);
+		printOnBridge(11);
+		AFTER(SEC(1), self, sendToBridge, NULL);
 	}
-	updateAll(self, 0);
-	AFTER(SEC(1), self, sendToBridge, NULL);
 }
 
 void checkTimer(Inter *self) {
 	if (self->timer >= 16) {
 		self->timer = 0;
 		if (self->north->traf->n) {
-			SYNC(&self->north->traf, turnNorth, false);
-			AFTER(SEC(5), &self->north->traf, turnSouth, true);
+			SYNC(self->north->traf, turnNorth, false);
+			AFTER(SEC(5), self->north->traf, turnSouth, true);
 		} else if (self->north->traf->s) {
-			SYNC(&self->north->traf, turnSouth, false);
-			AFTER(SEC(5), &self->north->traf, turnNorth, true);
+			SYNC(self->north->traf, turnSouth, false);
+			AFTER(SEC(5), self->north->traf, turnNorth, true);
 		}
 		AFTER(SEC(5), self, updateAll, 1);
 	} else if (self->north->traf->n || self->north->traf->s) {
@@ -120,14 +126,7 @@ void checkTimer(Inter *self) {
 
 void removeFromBridge(Inter *self) {
 	if (self->running) {
-		ASYNC(&self->north->traf->bridge, subCar, NULL);
+		ASYNC(self->north->traf->bridge, subCar, NULL);
 		updateAll(self, 0);
-	}
-}
-
-void changeLight(Inter *self) {
-	if (self->running){
-		ASYNC(&self->north->traf, changeActive, NULL);
-		updateAll(self, 1);
 	}
 }

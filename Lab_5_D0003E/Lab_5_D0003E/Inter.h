@@ -11,11 +11,12 @@
 #include "LCD.h"
 #include "BeforeBridge.h"
 
-#define initInter(n, s) {n, s, 0, false}
+#define initInter(n, s, l) {n, s, l, 0, true}
 
 struct Inter_Block {
 	BeforeBridge *north;
 	BeforeBridge *south;
+	LCD *l;
 	int timer;
 	bool running;
 };

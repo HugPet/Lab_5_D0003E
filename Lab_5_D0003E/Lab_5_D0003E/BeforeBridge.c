@@ -13,7 +13,7 @@ void enQ(BeforeBridge *self) {
 
 void deQ(BeforeBridge *self) {
 	self->carsInQ--;
-	self->traf->bridge++;
+	self->traf->bridge->carsOnBridge++;
 	if (self->traf->n) {
 		self->traf->bridge->nToS++;
 	} else if (self->traf->s) {
