@@ -22,28 +22,28 @@ void getKeyboardInput(void *arg);
 void toggleLight();
 void initializePort();
 void writeToPort(uint8_t out);
-/*
-uint8_t readFromPort(void *ptr);
-void *simulation(void *arg);*/
-FILE *file;
+void readFromPort(void *ptr);
+void *simulation(void *arg);
 
 int carsWaitingOnNorth = 0, carsWaitingOnSouth = 0, carsOnBridge = 0;
-bool redOnNorth = false, redOnSouth = false;
+bool redOnNorth = true, redOnSouth = true;
+int COM1 = 0;
+int carsOnBridgeOriginal = 0;
 
 int main(void)
 {
-	pthread_t screen, input, status;
+	pthread_t screen, updateLight, status;
     initializePort();
     pthread_create(&screen, NULL, updateScreen, NULL);
-	//pthread_create(&input, NULL, getKeyboardInput, NULL);
-	//pthread_create(&status,NULL, simulation, NULL);
+	//pthread_create(&updateLight, NULL, readFromPort, NULL);
+	pthread_create(&status,NULL, simulation, NULL);
 	getKeyboardInput(NULL);
 	return 1;
 }
 
 void *updateScreen(void *arg){
 	while(1){
-		printf("Cars queueing north side: %d \n Cars queueing south side: %d\n Cars on bridge: %d\n",carsWaitingOnNorth, carsWaitingOnSouth, carsOnBridge);
+		printf("Cars queueing north side: %d \nCars queueing south side: %d \nCars on bridge: %d\n",carsWaitingOnNorth, carsWaitingOnSouth, carsOnBridge);
 		if(redOnNorth && redOnSouth){
 			printf("North light is ");
 			printf("\033[0;31m");
@@ -115,7 +115,7 @@ void toggleLight(){
 }
 
 void initializePort(){
-	int COM1 = open("/dev/ttyS0", O_RDWR);
+	COM1 = open("/dev/ttyS0", O_RDWR);
 	struct termios port;
 	
 	tcgetattr(COM1, &port);	
@@ -125,44 +125,85 @@ void initializePort(){
 	port.c_cflag = B9600 | CS8 | CSTOPB | CREAD | CLOCAL | HUPCL | INPCK;
 	
 	tcsetattr(COM1, TCSANOW ,&port);
-	close(COM1);
 }
 
-void writeToPort(uint8_t out){	
-	int COM1 = open("/dev/ttyS0", O_RDWR);
-	if(COM1 == 0)	
-		printf("Open failed \n");
-	
+void writeToPort(uint8_t out){		
 	int confirm = write(COM1, &out, sizeof(out));
 	if(confirm == 0)
 		printf("Write failed \n");
-	close(COM1);
 }
 
-
-/*
 void *simulation(void *arg){
 	while(1){
-		uint8_t x = readFromPort(NULL);
-		switch(x){
-			case :
-			break;
-			
+		//uint8_t x = readFromPort(NULL);
+		while(!redOnNorth){
+			carsWaitingOnNorth--;
+			carsOnBridge++;
+			writeToPort(0x1);
+			sleep(1);
+			if(carsOnBridge > 4){
+				carsOnBridge--;
+			}
+		}
+		if(carsOnBridge && !redOnSouth){
+			carsOnBridgeOriginal = carsOnBridge;
+			while(carsOnBridge){
+				if(carsOnBridge==1){
+					sleep(5-carsOnBridgeOriginal);
+					carsOnBridge--;
+				} else {
+					sleep(1);
+					carsOnBridge--;
+				}
+			}
+		}
+		
+		while(!redOnSouth){
+			carsWaitingOnSouth--;
+			carsOnBridge++;
+			writeToPort(0x2);
+			sleep(1);
+			if(carsOnBridge > 4){
+				carsOnBridge--;
+			}
+		}
+		if(carsOnBridge && !redOnNorth)
+			carsOnBridgeOriginal = carsOnBridge;
+			while(carsOnBridge){
+				if(carsOnBridge==1){
+					sleep(5-carsOnBridgeOriginal);
+					carsOnBridge--;
+				} else {
+					sleep(1);
+					carsOnBridge--;
+				}
+			}
+		
+			//sleep((5-carsOnBridge)+carsOnBridge);
+			//carsOnBridge = 0;
+		if (redOnNorth && redOnSouth){
+			sleep(1);
 		}
 	}
 }
 
-uint8_t readFromPort(void *ptr){
-	file = open("/dev/ttyS0", O_RWDR);
-	if(file== NULL)
-		printf("Open failed \n");
-	int confirm = read(file,data,sizeof(data));
-	if(confirm == 0)
-		printf("Read failed \n");
-	close(file);
-	return data;
+
+void readFromPort(void *ptr){
+	uint8_t data;
+	while(1){
+		int confirm = read(COM1,&data,sizeof(data));
+		if (confirm > 0){
+			if(data == 0x9){
+				redOnNorth = false;
+				redOnSouth = true;
+			} else if (data == 0x6){
+				redOnNorth = true;
+				redOnSouth = false;				
+			} else if (data == 0xA){
+				redOnNorth = true;
+				redOnSouth = true;
+			}
+		//sleep(1);
+		}
+	}
 }
-
-
-*/
-// int read = read(FILE)
