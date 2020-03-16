@@ -27,10 +27,16 @@ void sendToBridge(Controller *self){
 	updateScreen(self);
 }
 
+void CheckLights(Controller *self){
+	checkPassage(self);
+	checkEmpty(self);
+	updateScreen(self);
+	SYNC(self->light, writeToPort, NULL);
+}
+
 void removeFromBridge(Controller *self){
 	self->carsOnBridge--;
-		updateScreen(self);
-
+	updateScreen(self);
 }
 
 void checkPassage(Controller *self) {
@@ -38,13 +44,15 @@ void checkPassage(Controller *self) {
 		self->carsPassed = 0;
 		if (self->light->northIsGreen && self->south->carsInQueue) {
 			SYNC(self->light, changeNorthStatus, false);
-			AFTER(SEC(5), self->light, changeSouthStatus, true);
+			SYNC(self->light, changeSouthStatus, true);
+			//AFTER(SEC(5), self->light, changeSouthStatus, true);
 		} else if (self->light->southIsGreen && self->north->carsInQueue) {
 			SYNC(self->light, changeSouthStatus, false);
-			AFTER(SEC(5), self->light, changeNorthStatus, true);
+			SYNC(self->light, changeNorthStatus, true);
+			//AFTER(SEC(5), self->light, changeNorthStatus, true);
 		}
-		SYNC(self->light,writeToPort,NULL);
-		AFTER(SEC(5), self->light,writeToPort,NULL);
+		//SYNC(self->light,writeToPort,NULL);
+		//AFTER(SEC(5), self->light,writeToPort,NULL);
 	}
 }
 
@@ -52,18 +60,42 @@ void checkEmpty(Controller *self){
 	if(!self->north->carsInQueue && !self->carsOnBridge){
 		SYNC(self->light, changeNorthStatus, false);
 		SYNC(self->light, changeSouthStatus, true);
-		SYNC(self->light,writeToPort,NULL);
+		//SYNC(self->light, writeToPort, NULL);
 
 	} else if (!self->south->carsInQueue && !self->carsOnBridge){
 		SYNC(self->light, changeNorthStatus, true);
 		SYNC(self->light, changeSouthStatus, false);
-		SYNC(self->light,writeToPort,NULL);
+		//SYNC(self->light, writeToPort, NULL);
 
 	}
 }
 
+
+void receiveUSART(Controller *self, uint8_t data) {
+	if (data & 1) {
+		self->north->carsInQueue++;
+	} else if ((data >> 1) & 1) {
+		if (self->north->carsInQueue){
+			self->north->carsInQueue--;
+			self->carsPassed++;
+			self->carsOnBridge++;
+			AFTER(SEC(5), self, removeFromBridge, NULL);
+		}
+	} else if ((data >> 2) & 1) {
+		self->south->carsInQueue++;
+	} else if ((data >> 3) & 1) {
+		if (self->south->carsInQueue){
+			self->south->carsInQueue--;
+			self->carsPassed++;
+			self->carsOnBridge++;
+			AFTER(SEC(5), self, removeFromBridge, NULL);
+		}
+	}
+	CheckLights(self);
+}
+
 void updateScreen(Controller *self){
-	printAt(self->north->carsInQueue, 0);
-	printAt(self->carsOnBridge, 2);
-	printAt(self->south->carsInQueue, 4);
+	//printAt(self->north->carsInQueue, 0);
+	//printAt(self->carsOnBridge, 2);
+	//printAt(self->south->carsInQueue, 4);
 }

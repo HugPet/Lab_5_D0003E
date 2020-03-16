@@ -31,4 +31,6 @@ void updateScreen(Controller *self);
 void removeFromBridge(Controller *self);
 void checkPassage(Controller *self);
 void checkEmpty(Controller *self);
+void receiveUSART(Controller *self, uint8_t data);
+void CheckLights(Controller *self);
 #endif

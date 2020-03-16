@@ -24,7 +24,7 @@ int main(void)
 	Queue southQ = initQueue(0);
 	Controller controller = initController(&northQ,&southQ, &light);
 	interruptHandler Interrupts = initInterruptHandler(&controller);
-	//INSTALL(&controller, readFromPort, IRQ_USART0_RX);
+	INSTALL(&Interrupts, readFromPort, IRQ_USART0_RX);
 	INSTALL(&Interrupts, stickInterrupt, IRQ_PCINT1);
 	return TINYTIMBER(&controller, sendToBridge, NULL);
 }
@@ -38,7 +38,7 @@ void initScreen() {
 	TCCR1B = (0<<WGM13)|(1<<WGM12)|(0<<WGM11)|(0<<WGM10)|(1<<CS12)|(0<<CS11)|(1<<CS10);
 	
 	UCSR0B = (1 << RXEN0)|(1<<TXEN0)|(1 << RXCIE0);
-	UCSR0C = (1 << USBS0)|(1 << UCSZ01) | (1 << UCSZ00);   // Set frame: 8data, 1 stp
+	UCSR0C = (0 << USBS0)|(1 << UCSZ01) | (1 << UCSZ00);   // Set frame: 8data, 1 stp USBS0 = stop bit
 	UBRR0H = MYUBRR >> 8;
 	UBRR0L = MYUBRR;
 	

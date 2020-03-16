@@ -7,6 +7,8 @@
 #ifndef INTERRUPTHANDLER_H_
 #define INTERRUPTHANDLER_H_
 #include "controller.h"
+#include <avr/io.h>
+#include <math.h>
 
 
 #define initInterruptHandler(c) {initObject(), c}
@@ -17,7 +19,7 @@ struct interruptHandler_Block {
 };
 
 typedef struct interruptHandler_Block interruptHandler;
-
+void writeLong(long i);
 void stickInterrupt(interruptHandler *self, int arg);
 void readFromPort(interruptHandler *self, int arg);
 #endif
