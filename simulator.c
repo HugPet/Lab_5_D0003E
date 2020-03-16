@@ -22,8 +22,11 @@ void getKeyboardInput(void *arg);
 void toggleLight();
 void initializePort();
 void writeToPort(uint8_t out);
-void readFromPort(void *ptr);
+void *readFromPort(void *ptr);
 void *simulation(void *arg);
+void sendToBridge();
+void *removeFromBridge(void *ptr);
+
 
 int carsWaitingOnNorth = 0, carsWaitingOnSouth = 0, carsOnBridge = 0;
 bool redOnNorth = true, redOnSouth = true;
@@ -35,9 +38,10 @@ int main(void)
 	pthread_t screen, updateLight, status;
     initializePort();
     pthread_create(&screen, NULL, updateScreen, NULL);
-	//pthread_create(&updateLight, NULL, readFromPort, NULL);
+	pthread_create(&updateLight, NULL, readFromPort, NULL);
 	pthread_create(&status,NULL, simulation, NULL);
 	getKeyboardInput(NULL);
+	
 	return 1;
 }
 
@@ -85,15 +89,14 @@ void getKeyboardInput(void *arg){
 		switch(x){
 			case 'n':
 			carsWaitingOnNorth++;
-			//writeToPort(NULL);
+			writeToPort(0x1);
 			break;
 			case 's':
 			carsWaitingOnSouth++;
-			//writeToPort(NULL);
+			writeToPort(0x4);
 			break;
 			case 'e':
 			return;
-			//writeToPort(NULL);
 			break;
 			case 't':
 			toggleLight();
@@ -116,15 +119,26 @@ void toggleLight(){
 
 void initializePort(){
 	COM1 = open("/dev/ttyS0", O_RDWR);
+	if (COM1 < 0){
+		printf("COM1 failed\n");	
+	}
+	tcflush(COM1,TCIFLUSH);
 	struct termios port;
 	
-	tcgetattr(COM1, &port);	
+	if (tcgetattr(COM1, &port))
+		printf("getAttr failed\n");
 	
 	cfsetispeed(&port,B9600);
 	cfsetospeed(&port,B9600);
 	port.c_cflag = B9600 | CS8 | CSTOPB | CREAD | CLOCAL | HUPCL | INPCK;
+	port.c_cflag &= ~(ECHO | ECHONL | ICANON);
 	
-	tcsetattr(COM1, TCSANOW ,&port);
+	port.c_cc[VTIME] = 10;
+	port.c_cc[VMIN] = 1;
+	
+	
+	if (tcsetattr(COM1, TCSANOW ,&port))
+		printf("setAttr failed\n");
 }
 
 void writeToPort(uint8_t out){		
@@ -135,39 +149,27 @@ void writeToPort(uint8_t out){
 
 void *simulation(void *arg){
 	while(1){
-		//uint8_t x = readFromPort(NULL);
 		while(!redOnNorth){
-			carsWaitingOnNorth--;
-			carsOnBridge++;
-			writeToPort(0x1);
-			sleep(1);
-			if(carsOnBridge > 4){
-				carsOnBridge--;
-			}
-		}
-		if(carsOnBridge && !redOnSouth){
-			carsOnBridgeOriginal = carsOnBridge;
-			while(carsOnBridge){
-				if(carsOnBridge==1){
-					sleep(5-carsOnBridgeOriginal);
-					carsOnBridge--;
-				} else {
-					sleep(1);
-					carsOnBridge--;
-				}
+			if (carsWaitingOnNorth){
+				carsWaitingOnNorth--;
+				carsOnBridge++;
+				sendToBridge();
+				writeToPort(0x2);
+				sleep(1);
 			}
 		}
 		
 		while(!redOnSouth){
-			carsWaitingOnSouth--;
-			carsOnBridge++;
-			writeToPort(0x2);
-			sleep(1);
-			if(carsOnBridge > 4){
-				carsOnBridge--;
+			if(carsWaitingOnSouth){
+				carsWaitingOnSouth--;
+				carsOnBridge++;
+				sendToBridge();
+				writeToPort(0x8);
+				sleep(1);
 			}
 		}
-		if(carsOnBridge && !redOnNorth)
+		
+		/*if(carsOnBridge && !redOnNorth)
 			carsOnBridgeOriginal = carsOnBridge;
 			while(carsOnBridge){
 				if(carsOnBridge==1){
@@ -177,21 +179,32 @@ void *simulation(void *arg){
 					sleep(1);
 					carsOnBridge--;
 				}
-			}
+			}*/
 		
-			//sleep((5-carsOnBridge)+carsOnBridge);
-			//carsOnBridge = 0;
-		if (redOnNorth && redOnSouth){
-			sleep(1);
-		}
+		//if (redOnNorth && redOnSouth){
+		//	sleep(1);
+		//}
 	}
 }
 
+void sendToBridge(){
+	pthread_t newCar;
+	pthread_create(&newCar, NULL, removeFromBridge, NULL);
+}
 
-void readFromPort(void *ptr){
+
+void *removeFromBridge(void *ptr){
+	sleep(5);
+	carsOnBridge--;
+	pthread_exit(NULL);
+}
+
+
+void *readFromPort(void *ptr){
 	uint8_t data;
 	while(1){
 		int confirm = read(COM1,&data,sizeof(data));
+		//	data = (data >> 4);
 		if (confirm > 0){
 			if(data == 0x9){
 				redOnNorth = false;
