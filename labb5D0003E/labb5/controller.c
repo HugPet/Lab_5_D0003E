@@ -28,6 +28,7 @@ void sendToBridge(Controller *self){
 }
 
 void CheckLights(Controller *self){
+	
 	checkPassage(self);
 	checkEmpty(self);
 	updateScreen(self);
@@ -57,12 +58,15 @@ void checkPassage(Controller *self) {
 }
 
 void checkEmpty(Controller *self){
-	if(!self->north->carsInQueue && !self->carsOnBridge){
+	
+	if(self->south->carsInQueue > 0 && self->north->carsInQueue == 0 && self->carsOnBridge == 0){
+		self->carsOnBridge = 11;
 		SYNC(self->light, changeNorthStatus, false);
 		SYNC(self->light, changeSouthStatus, true);
+		//self->carsOnBridge = 11;
 		//SYNC(self->light, writeToPort, NULL);
 
-	} else if (!self->south->carsInQueue && !self->carsOnBridge){
+	} else if (self->north->carsInQueue > 0 && self->south->carsInQueue == 0 && self->carsOnBridge == 0){
 		SYNC(self->light, changeNorthStatus, true);
 		SYNC(self->light, changeSouthStatus, false);
 		//SYNC(self->light, writeToPort, NULL);
@@ -91,11 +95,12 @@ void receiveUSART(Controller *self, uint8_t data) {
 			AFTER(SEC(5), self, removeFromBridge, NULL);
 		}
 	}
+	
 	CheckLights(self);
 }
 
 void updateScreen(Controller *self){
-	//printAt(self->north->carsInQueue, 0);
-	//printAt(self->carsOnBridge, 2);
-	//printAt(self->south->carsInQueue, 4);
+	printAt(self->north->carsInQueue, 0);
+	printAt(self->carsOnBridge, 2);
+	printAt(self->south->carsInQueue, 4);
 }

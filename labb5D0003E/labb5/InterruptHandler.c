@@ -33,17 +33,17 @@ void stickInterrupt(interruptHandler *self, int arg){
 }
 
 void readFromPort(interruptHandler *self, int arg){
-	//while ((UCSR0A & (1 << RXC0)) == 0) {};
+	while ((UCSR0A & (1 << RXC0)) == 0) {};
 	
 	char data = UDR0;
-	//SYNC(self->control, receiveUSART, data);
+	SYNC(self->control, receiveUSART, data);
 	//UDR0 &= 0;
 	//UDR0 |= 0x63;
 
 	//volatile int c = 0;
 	//while(c < 10000) {c++;}
 		
-	UDR0 = data;
+	//UDR0 = data;
 	//writeLong(data);
 	//while ((UCSR0A & (1 << UDRE0)) == 0) {};
 	//UDR0 = 255;
